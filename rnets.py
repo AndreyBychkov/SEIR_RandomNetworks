@@ -106,5 +106,44 @@ def task_2():
         review_connected_components_size_dist_complete(k)
 
 
+flat_map = lambda f, xs: (y for ys in xs for y in f(ys))
+
+
+def remove_all_cycles(G):
+    c = nx.cycle_basis(G)
+    c_nodes = list(set(flat_map(lambda _: _, c)))
+    G.remove_nodes_from(c_nodes)
+
+def get_part_of_graph_without_cycles(G, N):
+    """Graph will mutate after"""
+    remove_all_cycles(G)
+    return len(G.nodes) / N
+
+def get_average_part_of_graph_without_cycles(N, k, nsamples):
+    p = k * 1. / (N - 1)
+    graphs = [nx.erdos_renyi_graph(N, p) for _ in range(nsamples)]
+    average_part = np.mean([get_part_of_graph_without_cycles(g, N) for g in graphs])
+    return average_part
+
+def review_average_part_of_graph_without_cycles(N, nsamples, ax):
+    ks = np.arange(0., 2.01, 0.01)
+    parts = p_map(get_average_part_of_graph_without_cycles, [N] * len(ks), ks, [nsamples] * len(ks))
+    ax.plot(ks, parts, label=f"{N=}")
+
+def review_average_part_of_graph_without_cycles_complete():
+    fig = plt.figure(figsize=(15, 7))
+    ax = fig.add_subplot(1, 1, 1)
+    review_average_part_of_graph_without_cycles(101, 1000, ax)
+    review_average_part_of_graph_without_cycles(301, 250, ax)
+    review_average_part_of_graph_without_cycles(1001, 50, ax)
+
+    ax.set_title("Average part of graph without cycles distribution")
+    ax.set_xlabel("k")
+    ax.set_ylabel("size / N")
+    ax.legend()
+    fig.savefig(f"images/4.jpg")
+
+
+
 if __name__ == '__main__':
-    review_larges_connected_component_size_complete()
+    review_average_part_of_graph_without_cycles_complete()
